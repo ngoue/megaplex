@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-megaplex-dev-133537-authRole",
+      "UnauthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-dev-133537-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-dev-133537-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-megaplex-dev-133537-deployment",
+      "UnauthRoleName": "amplify-megaplex-dev-133537-unauthRole",
+      "StackName": "amplify-megaplex-dev-133537",
+      "StackId": "arn:aws:cloudformation:us-west-2:550697800331:stack/amplify-megaplex-dev-133537/71222080-17ee-11ec-bb5f-02778aa47ed3",
+      "AmplifyAppId": "d64tfocuu4fv4"
+    }
+  }
+}
