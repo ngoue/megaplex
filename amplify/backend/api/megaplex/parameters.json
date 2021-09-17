@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "megaplex",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authmegaplex51291c5b",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

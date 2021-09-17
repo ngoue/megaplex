@@ -1,8 +1,8 @@
 {
-    "identityPoolName": "megaplex43348ece_identitypool_43348ece",
+    "identityPoolName": "megaplex51291c5b_identitypool_51291c5b",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "megapl43348ece",
-    "userPoolName": "megaplex43348ece_userpool_43348ece",
+    "resourceNameTruncated": "megapl51291c5b",
+    "userPoolName": "megaplex51291c5b_userpool_51291c5b",
     "autoVerifiedAttributes": [
         "email"
     ],
@@ -20,9 +20,6 @@
     "requiredAttributes": [
         "email"
     ],
-    "aliasAttributes": [
-        "email"
-    ],
     "userpoolClientGenerateSecret": false,
     "userpoolClientRefreshTokenValidity": 30,
     "userpoolClientWriteAttributes": [
@@ -31,10 +28,10 @@
     "userpoolClientReadAttributes": [
         "email"
     ],
-    "userpoolClientLambdaRole": "megapl43348ece_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "megapl51291c5b_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "43348ece",
-    "resourceName": "megaplex43348ece",
+    "sharedId": "51291c5b",
+    "resourceName": "megaplex51291c5b",
     "authSelections": "identityPoolAndUserPool",
     "authRoleArn": {
         "Fn::GetAtt": [
@@ -49,6 +46,9 @@
         ]
     },
     "useDefault": "default",
+    "usernameAttributes": [
+        "email"
+    ],
     "triggers": "{}",
     "userPoolGroupList": [],
     "serviceName": "Cognito",
