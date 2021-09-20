@@ -1,0 +1,167 @@
+[
+  {
+    "id": "0001",
+    "cinemaNationalId": "",
+    "name": "Jordan Commons",
+    "latitude": "40.5818",
+    "longitude": "-111.8901",
+    "city": "",
+    "address1": "9335 South State Street",
+    "address2": "Sandy, UT 84070",
+    "phoneNumber": "801-304-4577"
+  },
+  {
+    "id": "0002",
+    "cinemaNationalId": "",
+    "name": "Gateway",
+    "latitude": "40.7662",
+    "longitude": "-111.9036",
+    "city": "",
+    "address1": "165 South Rio Grande Street",
+    "address2": "Salt Lake City, 84101",
+    "phoneNumber": "801-325-7500"
+  },
+  {
+    "id": "0003",
+    "cinemaNationalId": "",
+    "name": "Thanksgiving Point",
+    "latitude": "40.424",
+    "longitude": "-111.8853",
+    "city": "",
+    "address1": "2935 North Thanksgiving Way",
+    "address2": "Lehi, UT 84043",
+    "phoneNumber": "801-768-2700"
+  },
+  {
+    "id": "0004",
+    "cinemaNationalId": "",
+    "name": "The District",
+    "latitude": "40.5394",
+    "longitude": "-111.9806",
+    "city": "",
+    "address1": "3761 West Parkway Plaza Drive",
+    "address2": "South Jordan, UT 84095",
+    "phoneNumber": "801-304-4019"
+  },
+  {
+    "id": "0005",
+    "cinemaNationalId": "",
+    "name": "The Junction",
+    "latitude": "41.2244",
+    "longitude": "-111.9721",
+    "city": "",
+    "address1": "2351 Kiesel Avenue",
+    "address2": "Ogden, UT 84401",
+    "phoneNumber": "801-528-5801"
+  },
+  {
+    "id": "0006",
+    "cinemaNationalId": "",
+    "name": "Legacy Crossing",
+    "latitude": "40.9198",
+    "longitude": "-111.8931",
+    "city": "",
+    "address1": "1075 West Legacy Crossing Blvd",
+    "address2": "Centerville, UT 84014",
+    "phoneNumber": "801-397-5199"
+  },
+  {
+    "id": "0007",
+    "cinemaNationalId": "",
+    "name": "Valley Fair",
+    "latitude": "40.6937",
+    "longitude": "-111.9538",
+    "city": "",
+    "address1": "3620 South 2400 West",
+    "address2": "West Valley City, UT 84119",
+    "phoneNumber": "801-321-5901"
+  },
+  {
+    "id": "0008",
+    "cinemaNationalId": "",
+    "name": "University",
+    "latitude": "41.7531",
+    "longitude": "-111.8297",
+    "city": "",
+    "address1": "1225 North 200 East",
+    "address2": "Logan, UT 84341",
+    "phoneNumber": "801-528-5805"
+  },
+  {
+    "id": "0010",
+    "cinemaNationalId": "",
+    "name": "Providence",
+    "latitude": "41.7114",
+    "longitude": "-111.8306",
+    "city": "",
+    "address1": "535 West 100 North",
+    "address2": "Logan, UT 84332",
+    "phoneNumber": "435-753-0813"
+  },
+  {
+    "id": "0011",
+    "cinemaNationalId": "",
+    "name": "Cedar City",
+    "latitude": "37.6593",
+    "longitude": "-113.082",
+    "city": "",
+    "address1": "1040 Sage Way",
+    "address2": "Cedar City, UT 84720",
+    "phoneNumber": "435-867-6236"
+  },
+  {
+    "id": "0013",
+    "cinemaNationalId": "",
+    "name": "Sunset",
+    "latitude": "37.1258",
+    "longitude": "-113.6022",
+    "city": "",
+    "address1": "1091 North Bluff Street",
+    "address2": "St. George, UT 84770",
+    "phoneNumber": "435-986-8289"
+  },
+  {
+    "id": "0014",
+    "cinemaNationalId": "",
+    "name": "Pineview",
+    "latitude": "37.1228",
+    "longitude": "-113.5342",
+    "city": "",
+    "address1": "2376 East Red Cliffs Drive 200",
+    "address2": "St. George, UT 84790",
+    "phoneNumber": "435-627-9700"
+  },
+  {
+    "id": "0018",
+    "cinemaNationalId": "",
+    "name": "Mesquite",
+    "latitude": "36.8045",
+    "longitude": "-114.0909",
+    "city": "",
+    "address1": "749 West Mesquite Blvd",
+    "address2": "Mesquite, NV 89027",
+    "phoneNumber": "702-346-8552"
+  },
+  {
+    "id": "0019",
+    "cinemaNationalId": "",
+    "name": "Geneva",
+    "latitude": "40.3077",
+    "longitude": "-111.7357",
+    "city": "",
+    "address1": "600  North Mill Road",
+    "address2": "Vineyard, UT 84058",
+    "phoneNumber": "801-841-3260"
+  },
+  {
+    "id": "0020",
+    "cinemaNationalId": "",
+    "name": "Cottonwood",
+    "latitude": "40.6666",
+    "longitude": "-111.8354",
+    "city": "",
+    "address1": "1945 East Murray Hollady Blvd",
+    "address2": "Holladay, UT 84117",
+    "phoneNumber": "801-432-6605"
+  }
+]

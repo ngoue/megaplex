@@ -1,9 +1,13 @@
-import React from 'react'
+import React from "react"
+import Theatre from './Theatre'
+import theatres from "../theatres.json"
 
 function Subscriptions() {
   return (
     <>
-      <h1>Subscriptions</h1>
+      {theatres.map((theatre) => (
+        <Theatre key={theatre.id} theatre={theatre} />
+      ))}
     </>
   )
 }
