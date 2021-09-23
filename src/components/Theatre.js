@@ -1,31 +1,31 @@
-import React from "react"
-import classnames from "classnames"
+import classnames from 'classnames'
+import React from 'react'
 
-function Theatre({ theatre, checked, disabled, onToggle }) {
+function Theatre({ theatre, selected, disabled, onToggle }) {
   return (
-    <div
+    <button
+      onClick={() => onToggle(theatre.id)}
+      disabled={disabled}
       className={classnames(
-        disabled && "opacity-25",
-        "border border-megaplex rounded my-3 p-2 flex justify-between items-center"
+        selected &&
+          'bg-gradient-to-r from-megaplex to-pink-700 text-white border-opacity-0',
+        'w-full text-left border border-gray-300 rounded my-3 p-2 flex justify-between items-center'
       )}
     >
       <div>
-        <p>{theatre.name}</p>
-        <p className="text-gray-500 italic text-xs">
+        <p className="font-semibold">{theatre.name}</p>
+        <p
+          className={classnames(
+            selected ? 'text-gray-300' : 'text-gray-500',
+            'italic text-xs'
+          )}
+        >
           {theatre.address1}
           <br />
           {theatre.address2}
         </p>
       </div>
-      <div>
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled={disabled}
-          onChange={() => onToggle(theatre.id)}
-        />
-      </div>
-    </div>
+    </button>
   )
 }
 

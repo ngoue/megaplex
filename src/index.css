@@ -1,8 +1,9 @@
 :root {
-    --amplify-primary-color: #591c6b;
-    --amplify-primary-tint: #60346d;
-    --amplify-primary-shade: #31123a;
-    --amplify-tertiary-color: #fbc71a;
+  --amplify-primary-color: #591c6b;
+  --amplify-primary-tint: #60346d;
+  --amplify-primary-shade: #31123a;
+  --amplify-tertiary-color: #fbc71a;
+  --amplify-font-family: 'Montserrat';
 }
 
 @tailwind base;
