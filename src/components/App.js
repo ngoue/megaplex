@@ -1,12 +1,12 @@
-import { AuthState, onAuthUIStateChange } from "@aws-amplify/ui-components"
+import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components'
 import {
   AmplifyAuthContainer,
   AmplifyAuthenticator,
   AmplifySignUp,
-} from "@aws-amplify/ui-react"
-import React from "react"
-import Subscriptions from "./Subscriptions"
-import UserInfo from "./UserInfo"
+} from '@aws-amplify/ui-react'
+import React from 'react'
+import Subscriptions from './Subscriptions'
+import UserInfo from './UserInfo'
 
 function App() {
   const [authState, setAuthState] = React.useState()
@@ -21,6 +21,9 @@ function App() {
     []
   )
 
+  console.log(authState)
+  console.log(user)
+
   return authState === AuthState.SignedIn && user ? (
     <div className="m-5 md:mx-auto md:flex md:flex-row">
       <div className="flex-1 md:max-w-lg">
@@ -33,7 +36,12 @@ function App() {
           Subscribe to a theatre to receive real-time notifications for Tuesday
           showtimes with luxury seating at Megaplex Theatres!
         </p>
-        <UserInfo email={user.attributes.email} />
+        {/*
+          Immediately after signup, the user object is different from
+          the CognitoUser object that gets loaded later so we access the
+          email a little differently
+        */}
+        <UserInfo email={!!user.attributes ? user.attributes.email : user.username} />
       </div>
       <div className="w-64 my-10 mx-auto border-2 border-yellow-400 md:w-0 md:my-0 md:mx-10" />
       <div className="flex-1">
@@ -46,7 +54,7 @@ function App() {
         <AmplifySignUp
           slot="sign-up"
           usernameAlias="email"
-          formFields={[{ type: "email" }, { type: "password" }]}
+          formFields={[{ type: 'email' }, { type: 'password' }]}
         />
       </AmplifyAuthenticator>
     </AmplifyAuthContainer>
