@@ -17,26 +17,80 @@ const cognitoIdp = new AWS.CognitoIdentityServiceProvider()
 const megaplexApi = axios.create({
   baseURL: 'https://apiv2.megaplextheatres.com/api/',
 })
+const oneDayInSeconds = 86_400
 
 /**
- * Get new showtimes for a given theatre.
+ * Convert a date string to a UTC timestamp in seconds.
  *
- * Showtimes are cached in DynamoDB
+ * We append `Z` to the end of the date string to keep the date in UTC.
  *
- * @param {*} theatreId
+ * @param {string} dateString
+ * @returns {integer} timestamp
+ */
+const toTimestamp = (dateString) => new Date(`${dateString}Z`).getTime() / 1000
+
+/**
+ * Determine if a showtime has luxury seats and is on a Tuesday.
+ *
+ * @param {object} showtime
+ * @returns {boolean}
+ */
+const isLuxuryTuesdayShowtime = (showtime) =>
+  showtime.allowTicketSales &&
+  showtime.sessionAttributesNames.includes('Luxury') &&
+  new Date(`${showtime.showtime}Z`).getDay() === 2
+
+/**
+ * Get new, luxury Tuesday showtimes for a given theatre.
+ *
+ * Showtimes are cached in DynamoDB once they've been processed so
+ * subscribers only ever get one notification.
+ *
+ * @param {string} theatreId
  * @returns {array} showtimes
  */
-const getTheatreShowtimes = async (theatreId) => {
-  let showtimes = []
+const filterTheatreShowtimes = async (theatreId, allShowtimes) => {
+  // Get cached showtimes from DynamoDB
+  let cachedShowtimes = []
   let lastEvaluatedKey
 
-  // Performs at least one ``DynamoDB.scan`` on the showtimes table and
+  // Performs at least one ``DynamoDB.query`` on the showtimes table and
   // continues to scan as long as the ``LastEvaluatedKey`` is not empty.
   do {
-    // lookup
+    const data = await dynamodb
+      .query({
+        TableName: process.env.STORAGE_SHOWTIMES_NAME,
+        KeyConditionExpression: 'cinemaId = :cinemaId',
+        ExpressionAttributeValues: {
+          ':cinemaId': theatreId,
+        },
+        ExclusiveStartKey: lastEvaluatedKey,
+      })
+      .promise()
+    lastEvaluatedKey = data.LastEvaluatedKey
+    cachedShowtimes = [...cachedShowtimes, ...data.Items]
   } while (!!lastEvaluatedKey)
 
-  return showtimes
+  // Filter out showtimes that don't allow ticket sales
+  let cachedShowtimeIds = cachedShowtimes.map((s) => s.sessionId)
+  let showtimes = allShowtimes
+    .filter(isLuxuryTuesdayShowtime)
+    .filter((s) => !cachedShowtimeIds.includes(s.sessionId))
+
+  // Add new showtimes to DynamoDB
+  await dynamodb.batchWrite({
+    RequestItems: {
+      [process.env.STORAGE_SHOWTIMES_NAME]: showtimes.map((showtime) => ({
+        PutRequest: {
+          Item: {
+            cinemaId: theatreId,
+            sessionId: showtime.id,
+            expiration: (toTimestamp(showtime.showtime) + oneDayInSeconds),
+          },
+        },
+      })),
+    },
+  })
 }
 
 /**
@@ -60,10 +114,10 @@ const getTheatreSubscriptions = async (theatreId) => {
         ExpressionAttributeValues: {
           ':theatre': theatreId,
         },
-        LastEvaluatedKey: lastEvaluatedKey,
+        ExclusiveStartKey: lastEvaluatedKey,
       })
       .promise()
-    lastEvaluatedKey = data.lastEvaluatedKey
+    lastEvaluatedKey = data.LastEvaluatedKey
     subscriptions = [...subscriptions, ...data.Items]
   } while (!!lastEvaluatedKey)
 
@@ -73,7 +127,7 @@ const getTheatreSubscriptions = async (theatreId) => {
 /**
  * Get the email address for a given username.
  *
- * @param {*} username
+ * @param {string} username
  * @returns {string} email
  */
 const getUserEmail = async (username) => {
@@ -108,14 +162,33 @@ exports.handler = async (event) => {
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
 
   for (let theatre of theatres) {
-
-    // Retrieve showtimes
-    let showtimes
+    // Retrieve films
+    let films
     try {
-      showtimes = await getTheatreShowtimes
+      const data = await megaplexApi.get(`film/cinemaFilms/${theatre.id}`)
+      films = data.films
     } catch (err) {
       console.error('error retrieving showtimes for theatre:', theatre.id)
       console.error(err)
+    }
+
+    // Filter showtimes
+    let showtimes
+    let allShowtimes = films.reduce(
+      (all, film) => all.concat(film.sessions),
+      []
+    )
+    try {
+      showtimes = await filterTheatreShowtimes(theatre.id, allShowtimes)
+    } catch (err) {
+      console.error('error filtering showtimes for theatre:', theatre.id)
+      console.error(err)
+    }
+
+    // Only process further if we have new showtimes
+    if (showtimes.length <= 0) {
+      console.log('No new showtimes for theatre:', theatre.id)
+      continue
     }
 
     // Retrieve subscriptions
@@ -125,6 +198,11 @@ exports.handler = async (event) => {
     } catch (err) {
       console.error('error loading subscriptions for theatre:', theatre.id)
       console.error(err)
+      continue
+    }
+
+    if (subscriptions.length <= 0) {
+      console.log('No subscriptions for theatre:', theatre.id)
       continue
     }
 
