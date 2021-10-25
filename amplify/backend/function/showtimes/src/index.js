@@ -1,3 +1,17 @@
+/*
+Use the following code to retrieve configured secrets from SSM:
+
+const aws = require('aws-sdk');
+
+const { Parameters } = await (new aws.SSM())
+  .getParameters({
+    Names: ["SMTP_USER","SMTP_PASSWORD"].map(secretName => process.env[secretName]),
+    WithDecryption: true,
+  })
+  .promise();
+
+Parameters will be of the form { Name: 'secretName', Value: 'secretValue', ... }[]
+*/
 /* Amplify Params - DO NOT EDIT
 	API_MEGAPLEX_GRAPHQLAPIIDOUTPUT
 	API_MEGAPLEX_THEATRESUBSCRIPTIONTABLE_ARN
@@ -18,6 +32,39 @@ const megaplexApi = axios.create({
   baseURL: 'https://apiv2.megaplextheatres.com/api/',
 })
 const oneDayInSeconds = 86_400
+const SECRETS = {}
+
+/**
+ * Load SSM secrets. Only performed once at initial container load.
+ */
+const loadSecrets = async () => {
+  // skip if we already loaded secrets
+  if (SECRETS.__loaded) {
+    return
+  }
+
+  // load secrets from SSM
+  const { Parameters } = await new aws.SSM()
+    .getParameters({
+      Names: ['SMTP_USER', 'SMTP_PASSWORD'].map(
+        (secretName) => process.env[secretName]
+      ),
+      WithDecryption: true,
+    })
+    .promise()
+
+  // Add to ``SECRETS``
+  Object.assign(
+    SECRETS,
+    Parameters.reduce(
+      (all, param) => ({ ...all, [param.Name]: param.Value }),
+      {}
+    )
+  )
+
+  // mark loaded complete
+  SECRETS.__loaded = true
+}
 
 /**
  * Convert a date string to a UTC timestamp in seconds.
@@ -231,10 +278,12 @@ const processTheatre = async (theatre) => {
       })
     )
   ).filter((email) => email)
+  console.log(
+    `Processing ${emails.length} subscription(s) for theatre:`,
+    theatre.id
+  )
 
-  console.log('Processing subscriptions for theatre:', theatre.id)
-
-  
+  // Send email notifications
 }
 
 /**
@@ -243,6 +292,8 @@ const processTheatre = async (theatre) => {
  * @param {object} event
  */
 exports.handler = async (event) => {
+  // load secrets
+  loadSecrets()
   // load theatres
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
   // process theatre showtimes asynchronously

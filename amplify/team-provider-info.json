@@ -42,7 +42,9 @@
       "function": {
         "showtimes": {
           "deploymentBucketName": "amplify-megaplex-dev-133537-deployment",
-          "s3Key": "amplify-builds/showtimes-527a4457504231704379-build.zip"
+          "s3Key": "amplify-builds/showtimes-782b5737746b32424668-build.zip",
+          "smtpHost": "email-smtp.us-west-2.amazonaws.com",
+          "smtpPort": "587"
         }
       }
     }
