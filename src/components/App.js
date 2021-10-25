@@ -41,7 +41,9 @@ function App() {
           the CognitoUser object that gets loaded later so we access the
           email a little differently
         */}
-        <UserInfo email={!!user.attributes ? user.attributes.email : user.username} />
+        <UserInfo
+          email={!!user.attributes ? user.attributes.email : user.username}
+        />
       </div>
       <div className="w-64 my-10 mx-auto border-2 border-yellow-400 md:w-0 md:my-0 md:mx-10" />
       <div className="flex-1">

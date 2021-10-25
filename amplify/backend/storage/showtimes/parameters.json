@@ -1,0 +1,5 @@
+{
+    "tableName": "showtimes",
+    "partitionKeyName": "id",
+    "partitionKeyType": "S"
+}

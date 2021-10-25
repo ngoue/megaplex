@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "auth": {
+      "megaplex51291c5b": [
+        "read"
+      ]
+    },
+    "storage": {
+      "TheatreSubscription:@model(appsync)": [
+        "read"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}
