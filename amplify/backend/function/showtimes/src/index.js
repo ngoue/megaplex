@@ -108,10 +108,10 @@ exports.handler = async (event) => {
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
 
   for (let theatre of theatres) {
+
     // Retrieve showtimes
     let showtimes
     try {
-      // get showtimes
       showtimes = await getTheatreShowtimes
     } catch (err) {
       console.error('error retrieving showtimes for theatre:', theatre.id)

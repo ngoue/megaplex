@@ -21,9 +21,6 @@ function App() {
     []
   )
 
-  console.log(authState)
-  console.log(user)
-
   return authState === AuthState.SignedIn && user ? (
     <div className="m-5 md:mx-auto md:flex md:flex-row">
       <div className="flex-1 md:max-w-lg">

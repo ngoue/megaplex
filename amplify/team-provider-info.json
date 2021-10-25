@@ -22,18 +22,5 @@
         }
       }
     }
-  },
-  "prod": {
-    "awscloudformation": {
-      "AuthRoleName": "amplify-megaplex-prod-141137-authRole",
-      "UnauthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-prod-141137-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-prod-141137-authRole",
-      "Region": "us-west-2",
-      "DeploymentBucketName": "amplify-megaplex-prod-141137-deployment",
-      "UnauthRoleName": "amplify-megaplex-prod-141137-unauthRole",
-      "StackName": "amplify-megaplex-prod-141137",
-      "StackId": "arn:aws:cloudformation:us-west-2:550697800331:stack/amplify-megaplex-prod-141137/78378900-17f3-11ec-a317-06d8d7ec0367",
-      "AmplifyAppId": "d64tfocuu4fv4"
-    }
   }
 }
