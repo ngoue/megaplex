@@ -12,6 +12,13 @@
             "Type": "String"
         },
 
+        "sortKeyName": {
+            "Type": "String"
+        },
+        "sortKeyType": {
+            "Type": "String"
+        },
+
         "tableName": {
             "Type": "String"
         }
@@ -34,7 +41,12 @@
                 "AttributeDefinitions": [
 
                   {
-                      "AttributeName": "id",
+                      "AttributeName": "cinemaId",
+                      "AttributeType": "S"
+                  }  ,
+
+                  {
+                      "AttributeName": "sessionId",
                       "AttributeType": "S"
                   }
 
@@ -42,8 +54,13 @@
                 "KeySchema": [
 
                   {
-                    "AttributeName": "id",
+                    "AttributeName": "cinemaId",
                     "KeyType": "HASH"
+                  }  ,
+
+                  {
+                    "AttributeName": "sessionId",
+                    "KeyType": "RANGE"
                   }
 
                 ],
@@ -111,6 +128,17 @@
         "PartitionKeyType": {
             "Value": {
                 "Ref": "partitionKeyType"
+            }
+        },
+
+        "SortKeyName": {
+            "Value": {
+                "Ref": "sortKeyName"
+            }
+        },
+        "SortKeyType": {
+            "Value": {
+                "Ref": "sortKeyType"
             }
         },
 

@@ -38,6 +38,15 @@
           ]
         },
         {
+          "category": "storage",
+          "resourceName": "showtimes",
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ]
+        },
+        {
           "category": "api",
           "resourceName": "megaplex",
           "attributes": [

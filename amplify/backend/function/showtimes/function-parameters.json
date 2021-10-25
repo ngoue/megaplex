@@ -6,6 +6,10 @@
       ]
     },
     "storage": {
+      "showtimes": [
+        "create",
+        "read"
+      ],
       "TheatreSubscription:@model(appsync)": [
         "read"
       ]

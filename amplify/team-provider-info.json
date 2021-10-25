@@ -18,7 +18,7 @@
       "function": {
         "showtimes": {
           "deploymentBucketName": "amplify-megaplex-dev-133537-deployment",
-          "s3Key": "amplify-builds/showtimes-466c5869634b79715546-build.zip"
+          "s3Key": "amplify-builds/showtimes-7a78456733694765515a-build.zip"
         }
       }
     }

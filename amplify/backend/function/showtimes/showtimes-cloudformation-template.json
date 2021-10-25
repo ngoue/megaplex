@@ -23,6 +23,18 @@
     "apimegaplexGraphQLAPIIdOutput": {
       "Type": "String",
       "Default": "apimegaplexGraphQLAPIIdOutput"
+    },
+    "storageshowtimesName": {
+      "Type": "String",
+      "Default": "storageshowtimesName"
+    },
+    "storageshowtimesArn": {
+      "Type": "String",
+      "Default": "storageshowtimesArn"
+    },
+    "storageshowtimesStreamArn": {
+      "Type": "String",
+      "Default": "storageshowtimesStreamArn"
     }
   },
   "Conditions": {
@@ -109,6 +121,15 @@
             },
             "API_MEGAPLEX_GRAPHQLAPIIDOUTPUT": {
               "Ref": "apimegaplexGraphQLAPIIdOutput"
+            },
+            "STORAGE_SHOWTIMES_NAME": {
+              "Ref": "storageshowtimesName"
+            },
+            "STORAGE_SHOWTIMES_ARN": {
+              "Ref": "storageshowtimesArn"
+            },
+            "STORAGE_SHOWTIMES_STREAMARN": {
+              "Ref": "storageshowtimesStreamArn"
             }
           }
         },
@@ -255,6 +276,36 @@
                       {
                         "Ref": "authmegaplex51291c5bUserPoolId"
                       }
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Put*",
+                "dynamodb:Create*",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:Get*",
+                "dynamodb:BatchGetItem",
+                "dynamodb:List*",
+                "dynamodb:Describe*",
+                "dynamodb:Scan",
+                "dynamodb:Query"
+              ],
+              "Resource": [
+                {
+                  "Ref": "storageshowtimesArn"
+                },
+                {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      {
+                        "Ref": "storageshowtimesArn"
+                      },
+                      "index/*"
                     ]
                   ]
                 }

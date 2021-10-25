@@ -1,5 +1,7 @@
 {
     "tableName": "showtimes",
-    "partitionKeyName": "id",
-    "partitionKeyType": "S"
+    "partitionKeyName": "cinemaId",
+    "partitionKeyType": "S",
+    "sortKeyName": "sessionId",
+    "sortKeyType": "S"
 }

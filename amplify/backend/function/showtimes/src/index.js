@@ -5,6 +5,9 @@
 	AUTH_MEGAPLEX51291C5B_USERPOOLID
 	ENV
 	REGION
+	STORAGE_SHOWTIMES_ARN
+	STORAGE_SHOWTIMES_NAME
+	STORAGE_SHOWTIMES_STREAMARN
 Amplify Params - DO NOT EDIT */
 
 const AWS = require('aws-sdk')
@@ -105,12 +108,12 @@ exports.handler = async (event) => {
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
 
   for (let theatre of theatres) {
-
     // Retrieve showtimes
     let showtimes
     try {
       // get showtimes
-    } catch(err) {
+      showtimes = await getTheatreShowtimes
+    } catch (err) {
       console.error('error retrieving showtimes for theatre:', theatre.id)
       console.error(err)
     }
@@ -126,19 +129,22 @@ exports.handler = async (event) => {
     }
 
     // Get email addresses from Cognito
-    const emails = await Promise.all(
-      subscriptions.map(async ({ owner }) => {
-        let email
-        try {
-          email = await getUserEmail(owner)
-        } catch (err) {
-          console.error('error retreiving email for user:', owner)
-          console.error(err)
-        }
-        return email
-      })
-    )
+    let emails = (
+      await Promise.all(
+        subscriptions.map(async ({ owner }) => {
+          let email
+          try {
+            email = await getUserEmail(owner)
+          } catch (err) {
+            console.error('error retreiving email for user:', owner)
+            console.error(err)
+          }
+          return email
+        })
+      )
+    ).filter((email) => email)
 
     // TODO: either send emails inline, or add the email to an SQS queue
+    // use Handlebars (based on Mustache) for templating?
   }
 }
