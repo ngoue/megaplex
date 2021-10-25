@@ -1,4 +1,28 @@
 {
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-megaplex-prod-53513-authRole",
+      "UnauthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-prod-53513-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::550697800331:role/amplify-megaplex-prod-53513-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-megaplex-prod-53513-deployment",
+      "UnauthRoleName": "amplify-megaplex-prod-53513-unauthRole",
+      "StackName": "amplify-megaplex-prod-53513",
+      "StackId": "arn:aws:cloudformation:us-west-2:550697800331:stack/amplify-megaplex-prod-53513/540d1ac0-3555-11ec-8679-0616692c1125",
+      "AmplifyAppId": "d64tfocuu4fv4"
+    },
+    "categories": {
+      "auth": {
+        "megaplex51291c5b": {}
+      },
+      "function": {
+        "showtimes": {
+          "deploymentBucketName": "amplify-megaplex-prod-53513-deployment",
+          "s3Key": "amplify-builds/showtimes-527a4457504231704379-build.zip"
+        }
+      }
+    }
+  },
   "dev": {
     "awscloudformation": {
       "AuthRoleName": "amplify-megaplex-dev-133537-authRole",
@@ -18,7 +42,7 @@
       "function": {
         "showtimes": {
           "deploymentBucketName": "amplify-megaplex-dev-133537-deployment",
-          "s3Key": "amplify-builds/showtimes-7a78456733694765515a-build.zip"
+          "s3Key": "amplify-builds/showtimes-527a4457504231704379-build.zip"
         }
       }
     }
