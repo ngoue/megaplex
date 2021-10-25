@@ -18,7 +18,9 @@
       "function": {
         "showtimes": {
           "deploymentBucketName": "amplify-megaplex-prod-53513-deployment",
-          "s3Key": "amplify-builds/showtimes-527a4457504231704379-build.zip"
+          "s3Key": "amplify-builds/showtimes-666a54454b35394f4c39-build.zip",
+          "smtpHost": "email-smtp.us-west-2.amazonaws.com",
+          "smtpPort": "587"
         }
       }
     }
@@ -42,7 +44,7 @@
       "function": {
         "showtimes": {
           "deploymentBucketName": "amplify-megaplex-dev-133537-deployment",
-          "s3Key": "amplify-builds/showtimes-782b5737746b32424668-build.zip",
+          "s3Key": "amplify-builds/showtimes-4e4173447a41626d3175-build.zip",
           "smtpHost": "email-smtp.us-west-2.amazonaws.com",
           "smtpPort": "587"
         }

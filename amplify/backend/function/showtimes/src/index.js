@@ -32,19 +32,22 @@ const megaplexApi = axios.create({
   baseURL: 'https://apiv2.megaplextheatres.com/api/',
 })
 const oneDayInSeconds = 86_400
-const SECRETS = {}
 
 /**
  * Load SSM secrets. Only performed once at initial container load.
+ *
+ * To access a secret value after calling ``loadSecrets``:
+ *
+ *    process.env[process.env.SMTP_USER]
  */
 const loadSecrets = async () => {
   // skip if we already loaded secrets
-  if (SECRETS.__loaded) {
+  if (process.env.__secretsLoaded) {
     return
   }
 
   // load secrets from SSM
-  const { Parameters } = await new aws.SSM()
+  const { Parameters } = await new AWS.SSM()
     .getParameters({
       Names: ['SMTP_USER', 'SMTP_PASSWORD'].map(
         (secretName) => process.env[secretName]
@@ -53,17 +56,13 @@ const loadSecrets = async () => {
     })
     .promise()
 
-  // Add to ``SECRETS``
-  Object.assign(
-    SECRETS,
-    Parameters.reduce(
-      (all, param) => ({ ...all, [param.Name]: param.Value }),
-      {}
-    )
-  )
+  // set secrets in env
+  Parameters.forEach((param) => {
+    process.env[param.Name] = param.Value
+  })
 
   // mark loaded complete
-  SECRETS.__loaded = true
+  process.env.__secretsLoaded = true
 }
 
 /**
@@ -293,7 +292,11 @@ const processTheatre = async (theatre) => {
  */
 exports.handler = async (event) => {
   // load secrets
-  loadSecrets()
+  await loadSecrets()
+  console.log('process.env')
+  console.log(JSON.stringify(process.env, null, 4))
+  console.log('process.env.SMTP_USER', process.env[process.env.SMTP_USER])
+  console.log('process.env.SMTP_PASSWORD', process.env[process.env.SMTP_PASSWORD])
   // load theatres
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
   // process theatre showtimes asynchronously
