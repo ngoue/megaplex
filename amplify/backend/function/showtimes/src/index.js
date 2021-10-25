@@ -77,20 +77,34 @@ const filterTheatreShowtimes = async (theatreId, allShowtimes) => {
     .filter(isLuxuryTuesdayShowtime)
     .filter((s) => !cachedShowtimeIds.includes(s.sessionId))
 
-  // Add new showtimes to DynamoDB
-  await dynamodb.batchWrite({
-    RequestItems: {
-      [process.env.STORAGE_SHOWTIMES_NAME]: showtimes.map((showtime) => ({
-        PutRequest: {
-          Item: {
-            cinemaId: theatreId,
-            sessionId: showtime.id,
-            expiration: (toTimestamp(showtime.showtime) + oneDayInSeconds),
-          },
+  // Add new showtimes to DynamoDB.
+  // We can write a max of 25 items at a time.
+  let batchSize = 25
+  let batchStart = 0
+
+  while (batchStart < showtimes.length) {
+    // We can write a max of 25 items at a time
+    await dynamodb
+      .batchWrite({
+        RequestItems: {
+          [process.env.STORAGE_SHOWTIMES_NAME]: showtimes
+            .slice(batchStart, batchStart + batchSize)
+            .map((showtime) => ({
+              PutRequest: {
+                Item: {
+                  cinemaId: showtime.cinemaId,
+                  sessionId: showtime.sessionId,
+                  expiration: toTimestamp(showtime.showtime) + oneDayInSeconds,
+                },
+              },
+            })),
         },
-      })),
-    },
-  })
+      })
+      .promise()
+    batchStart += batchSize
+  }
+
+  return showtimes
 }
 
 /**
@@ -154,75 +168,83 @@ const getUserEmail = async (username) => {
 }
 
 /**
+ * Check for new, luxury Tuesday showings at the given theatre.
+ *
+ * @param {object} theatre
+ */
+const processTheatre = async (theatre) => {
+  // Retrieve films
+  let films
+  try {
+    const { data } = await megaplexApi.get(`film/cinemaFilms/${theatre.id}`)
+    films = data
+  } catch (err) {
+    console.error('error retrieving showtimes for theatre:', theatre.id)
+    console.error(err)
+    return
+  }
+
+  // Filter showtimes
+  let showtimes
+  let allShowtimes = films.reduce((all, film) => all.concat(film.sessions), [])
+  try {
+    showtimes = await filterTheatreShowtimes(theatre.id, allShowtimes)
+  } catch (err) {
+    console.error('error filtering showtimes for theatre:', theatre.id)
+    console.error(err)
+    return
+  }
+
+  // Only process further if we have new showtimes
+  if (showtimes.length <= 0) {
+    console.log('No new showtimes for theatre:', theatre.id)
+    return
+  }
+
+  // Retrieve subscriptions
+  let subscriptions
+  try {
+    subscriptions = await getTheatreSubscriptions(theatre.id)
+  } catch (err) {
+    console.error('error loading subscriptions for theatre:', theatre.id)
+    console.error(err)
+    return
+  }
+
+  if (subscriptions.length <= 0) {
+    console.log('No subscriptions for theatre:', theatre.id)
+    return
+  }
+
+  // Get email addresses from Cognito
+  let emails = (
+    await Promise.all(
+      subscriptions.map(async ({ owner }) => {
+        let email
+        try {
+          email = await getUserEmail(owner)
+        } catch (err) {
+          console.error('error retreiving email for user:', owner)
+          console.error(err)
+        }
+        return email
+      })
+    )
+  ).filter((email) => email)
+
+  console.log('Processing subscriptions for theatre:', theatre.id)
+
+  
+}
+
+/**
  * Main function handler
  *
  * @param {object} event
  */
 exports.handler = async (event) => {
+  // load theatres
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
-
-  for (let theatre of theatres) {
-    // Retrieve films
-    let films
-    try {
-      const data = await megaplexApi.get(`film/cinemaFilms/${theatre.id}`)
-      films = data.films
-    } catch (err) {
-      console.error('error retrieving showtimes for theatre:', theatre.id)
-      console.error(err)
-    }
-
-    // Filter showtimes
-    let showtimes
-    let allShowtimes = films.reduce(
-      (all, film) => all.concat(film.sessions),
-      []
-    )
-    try {
-      showtimes = await filterTheatreShowtimes(theatre.id, allShowtimes)
-    } catch (err) {
-      console.error('error filtering showtimes for theatre:', theatre.id)
-      console.error(err)
-    }
-
-    // Only process further if we have new showtimes
-    if (showtimes.length <= 0) {
-      console.log('No new showtimes for theatre:', theatre.id)
-      continue
-    }
-
-    // Retrieve subscriptions
-    let subscriptions
-    try {
-      subscriptions = await getTheatreSubscriptions(theatre.id)
-    } catch (err) {
-      console.error('error loading subscriptions for theatre:', theatre.id)
-      console.error(err)
-      continue
-    }
-
-    if (subscriptions.length <= 0) {
-      console.log('No subscriptions for theatre:', theatre.id)
-      continue
-    }
-
-    // Get email addresses from Cognito
-    let emails = (
-      await Promise.all(
-        subscriptions.map(async ({ owner }) => {
-          let email
-          try {
-            email = await getUserEmail(owner)
-          } catch (err) {
-            console.error('error retreiving email for user:', owner)
-            console.error(err)
-          }
-          return email
-        })
-      )
-    ).filter((email) => email)
-
-    // TODO: either send emails inline, or add the email to an SQS queue
-    // use Handlebars (based on Mustache) for templating?
-  }
+  // process theatre showtimes asynchronously
+  await Promise.all(theatres.map(processTheatre))
 }
