@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@sendgrid/mail": "^7.5.0",
-    "axios": "^0.23.0"
+    "axios": "^0.23.0",
+    "dateformat": "4.6.3"
   }
 }

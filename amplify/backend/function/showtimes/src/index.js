@@ -26,6 +26,7 @@ Amplify Params - DO NOT EDIT */
 
 const AWS = require('aws-sdk')
 const axios = require('axios')
+const dateFormat = require('dateformat')
 const sendgrid = require('@sendgrid/mail')
 const dynamodb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
 const cognitoIdp = new AWS.CognitoIdentityServiceProvider()
@@ -135,6 +136,7 @@ const getFilms = async (theatreId) => {
         .filter((session) => !cachedShowtimeIds.includes(session.sessionId))
         .map((session) => ({
           ...session,
+          showtime: dateFormat(new Date(`${session.showtime}Z`), 'mmm. d – h:MM tt')
           sessionAttributesNames: session.sessionAttributesNames
             .filter((attr) => !ignoreSessionAttributes.includes(attr))
             .map((attr) => attr.toUpperCase())
