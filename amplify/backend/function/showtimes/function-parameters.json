@@ -17,17 +17,7 @@
   },
   "lambdaLayers": [],
   "secretNames": [
-    "SMTP_USER",
-    "SMTP_PASSWORD"
+    "SENDGRID_API_KEY"
   ],
-  "environmentVariableList": [
-    {
-      "cloudFormationParameterName": "smtpHost",
-      "environmentVariableName": "SMTP_HOST"
-    },
-    {
-      "cloudFormationParameterName": "smtpPort",
-      "environmentVariableName": "SMTP_PORT"
-    }
-  ]
+  "environmentVariableList": []
 }

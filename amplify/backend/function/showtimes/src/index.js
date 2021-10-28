@@ -5,7 +5,7 @@ const aws = require('aws-sdk');
 
 const { Parameters } = await (new aws.SSM())
   .getParameters({
-    Names: ["SMTP_USER","SMTP_PASSWORD"].map(secretName => process.env[secretName]),
+    Names: ["SENDGRID_API_KEY"].map(secretName => process.env[secretName]),
     WithDecryption: true,
   })
   .promise();
@@ -26,19 +26,22 @@ Amplify Params - DO NOT EDIT */
 
 const AWS = require('aws-sdk')
 const axios = require('axios')
+const sendgrid = require('@sendgrid/mail')
 const dynamodb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
 const cognitoIdp = new AWS.CognitoIdentityServiceProvider()
+const oneDayInSeconds = 86_400
+const ignoreSessionAttributes = ['2D', 'CC', 'DVS', 'EnglishDub', 'EnglishSub']
+const templateId = 'd-008e503c9f4546ebaa6e9fd78aa683f4'
 const megaplexApi = axios.create({
   baseURL: 'https://apiv2.megaplextheatres.com/api/',
 })
-const oneDayInSeconds = 86_400
 
 /**
  * Load SSM secrets. Only performed once at initial container load.
  *
  * To access a secret value after calling ``loadSecrets``:
  *
- *    process.env[process.env.SMTP_USER]
+ *    process.env[process.env.SENDGRID_API_KEY]
  */
 const loadSecrets = async () => {
   // skip if we already loaded secrets
@@ -49,9 +52,7 @@ const loadSecrets = async () => {
   // load secrets from SSM
   const { Parameters } = await new AWS.SSM()
     .getParameters({
-      Names: ['SMTP_USER', 'SMTP_PASSWORD'].map(
-        (secretName) => process.env[secretName]
-      ),
+      Names: ['SENDGRID_API_KEY'].map((secretName) => process.env[secretName]),
       WithDecryption: true,
     })
     .promise()
@@ -60,6 +61,9 @@ const loadSecrets = async () => {
   Parameters.forEach((param) => {
     process.env[param.Name] = param.Value
   })
+
+  // one-time initializations once secrets are loaded
+  sendgrid.setApiKey(process.env[process.env.SENDGRID_API_KEY])
 
   // mark loaded complete
   process.env.__secretsLoaded = true
@@ -87,7 +91,7 @@ const isLuxuryTuesdayShowtime = (showtime) =>
   new Date(`${showtime.showtime}Z`).getDay() === 2
 
 /**
- * Get new, luxury Tuesday showtimes for a given theatre.
+ * Get films with new, luxury Tuesday showtimes for a given theatre.
  *
  * Showtimes are cached in DynamoDB once they've been processed so
  * subscribers only ever get one notification.
@@ -95,7 +99,7 @@ const isLuxuryTuesdayShowtime = (showtime) =>
  * @param {string} theatreId
  * @returns {array} showtimes
  */
-const filterTheatreShowtimes = async (theatreId, allShowtimes) => {
+const getFilms = async (theatreId) => {
   // Get cached showtimes from DynamoDB
   let cachedShowtimes = []
   let lastEvaluatedKey
@@ -117,23 +121,43 @@ const filterTheatreShowtimes = async (theatreId, allShowtimes) => {
     cachedShowtimes = [...cachedShowtimes, ...data.Items]
   } while (!!lastEvaluatedKey)
 
-  // Filter out showtimes that don't allow ticket sales
-  let cachedShowtimeIds = cachedShowtimes.map((s) => s.sessionId)
-  let showtimes = allShowtimes
-    .filter(isLuxuryTuesdayShowtime)
-    .filter((s) => !cachedShowtimeIds.includes(s.sessionId))
+  // Load films from Megaplex API
+  let { data: films } = await megaplexApi.get(`film/cinemaFilms/${theatreId}`)
+
+  // Filter and map film and session data by removing showings that are
+  // not Luxury Tuesday showings or they've already been reported.
+  let cachedShowtimeIds = cachedShowtimes.map((session) => session.sessionId)
+  films = films
+    .map((film) => ({
+      ...film,
+      sessions: film.sessions
+        .filter(isLuxuryTuesdayShowtime)
+        .filter((session) => !cachedShowtimeIds.includes(session.sessionId))
+        .map((session) => ({
+          ...session,
+          sessionAttributesNames: session.sessionAttributesNames
+            .filter((attr) => !ignoreSessionAttributes.includes(attr))
+            .map((attr) => attr.toUpperCase())
+            .join(' '),
+        })),
+    }))
+    .filter((film) => film.sessions.length > 0)
 
   // Add new showtimes to DynamoDB.
   // We can write a max of 25 items at a time.
   let batchSize = 25
   let batchStart = 0
+  let newShowtimes = films.reduce(
+    (sessions, film) => [...sessions, ...film.sessions],
+    []
+  )
 
-  while (batchStart < showtimes.length) {
+  while (batchStart < newShowtimes.length) {
     // We can write a max of 25 items at a time
     await dynamodb
       .batchWrite({
         RequestItems: {
-          [process.env.STORAGE_SHOWTIMES_NAME]: showtimes
+          [process.env.STORAGE_SHOWTIMES_NAME]: newShowtimes
             .slice(batchStart, batchStart + batchSize)
             .map((showtime) => ({
               PutRequest: {
@@ -150,7 +174,7 @@ const filterTheatreShowtimes = async (theatreId, allShowtimes) => {
     batchStart += batchSize
   }
 
-  return showtimes
+  return films
 }
 
 /**
@@ -222,27 +246,15 @@ const processTheatre = async (theatre) => {
   // Retrieve films
   let films
   try {
-    const { data } = await megaplexApi.get(`film/cinemaFilms/${theatre.id}`)
-    films = data
+    films = await getFilms(theatre.id)
   } catch (err) {
     console.error('error retrieving showtimes for theatre:', theatre.id)
     console.error(err)
     return
   }
 
-  // Filter showtimes
-  let showtimes
-  let allShowtimes = films.reduce((all, film) => all.concat(film.sessions), [])
-  try {
-    showtimes = await filterTheatreShowtimes(theatre.id, allShowtimes)
-  } catch (err) {
-    console.error('error filtering showtimes for theatre:', theatre.id)
-    console.error(err)
-    return
-  }
-
   // Only process further if we have new showtimes
-  if (showtimes.length <= 0) {
+  if (films.length <= 0) {
     console.log('No new showtimes for theatre:', theatre.id)
     return
   }
@@ -277,12 +289,27 @@ const processTheatre = async (theatre) => {
       })
     )
   ).filter((email) => email)
-  console.log(
-    `Processing ${emails.length} subscription(s) for theatre:`,
-    theatre.id
-  )
 
   // Send email notifications
+  try {
+    await sendgrid.sendMultiple({
+      to: emails,
+      from: 'megaplex-updates@jordanthomasg.com',
+      templateId,
+      dynamicTemplateData: {
+        unsubscribe: 'https://megaplex.jordanthomasg.com',
+        theatre,
+        films,
+      },
+    })
+    console.log(
+      `${emails.length} notification(s) sent for theatre:`,
+      theatre.id
+    )
+  } catch (err) {
+    console.error('error sending notifications for theatre:', theatre.id)
+    console.error(err)
+  }
 }
 
 /**
@@ -293,10 +320,6 @@ const processTheatre = async (theatre) => {
 exports.handler = async (event) => {
   // load secrets
   await loadSecrets()
-  console.log('process.env')
-  console.log(JSON.stringify(process.env, null, 4))
-  console.log('process.env.SMTP_USER', process.env[process.env.SMTP_USER])
-  console.log('process.env.SMTP_PASSWORD', process.env[process.env.SMTP_PASSWORD])
   // load theatres
   const { data: theatres } = await megaplexApi.get('cinema/cinemas')
   // process theatre showtimes asynchronously

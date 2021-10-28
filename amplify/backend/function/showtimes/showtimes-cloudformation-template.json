@@ -35,12 +35,6 @@
     "storageshowtimesStreamArn": {
       "Type": "String",
       "Default": "storageshowtimesStreamArn"
-    },
-    "smtpHost": {
-      "Type": "String"
-    },
-    "smtpPort": {
-      "Type": "String"
     }
   },
   "Conditions": {
@@ -137,7 +131,7 @@
             "STORAGE_SHOWTIMES_STREAMARN": {
               "Ref": "storageshowtimesStreamArn"
             },
-            "SMTP_USER": {
+            "SENDGRID_API_KEY": {
               "Fn::Join": [
                 "",
                 [
@@ -153,35 +147,9 @@
                       }
                     ]
                   },
-                  "SMTP_USER"
+                  "SENDGRID_API_KEY"
                 ]
               ]
-            },
-            "SMTP_PASSWORD": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Fn::Sub": [
-                      "/amplify/${appId}/${env}/AMPLIFY_${functionName}_",
-                      {
-                        "appId": "d64tfocuu4fv4",
-                        "env": {
-                          "Ref": "env"
-                        },
-                        "functionName": "showtimes"
-                      }
-                    ]
-                  },
-                  "SMTP_PASSWORD"
-                ]
-              ]
-            },
-            "SMTP_HOST": {
-              "Ref": "smtpHost"
-            },
-            "SMTP_PORT": {
-              "Ref": "smtpPort"
             }
           }
         },
