@@ -136,7 +136,10 @@ const getFilms = async (theatreId) => {
         .filter((session) => !cachedShowtimeIds.includes(session.sessionId))
         .map((session) => ({
           ...session,
-          showtime: dateFormat(new Date(`${session.showtime}Z`), 'mmm. d – h:MM tt')
+          prettyShowtime: dateFormat(
+            new Date(`${session.showtime}Z`),
+            'mmm. d – h:MM tt'
+          ),
           sessionAttributesNames: session.sessionAttributesNames
             .filter((attr) => !ignoreSessionAttributes.includes(attr))
             .map((attr) => attr.toUpperCase())
