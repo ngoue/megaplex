@@ -24,17 +24,26 @@ Parameters will be of the form { Name: 'secretName', Value: 'secretValue', ... }
 	STORAGE_SHOWTIMES_STREAMARN
 Amplify Params - DO NOT EDIT */
 
-const AWS = require('aws-sdk')
-const axios = require('axios')
-const dateFormat = require('dateformat')
-const sendgrid = require('@sendgrid/mail')
-const dynamodb = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
+const AWS = require("aws-sdk")
+const axios = require("axios")
+const https = require("https")
+const dateFormat = require("dateformat")
+const sendgrid = require("@sendgrid/mail")
+const dynamodb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" })
 const cognitoIdp = new AWS.CognitoIdentityServiceProvider()
 const oneDayInSeconds = 86_400
-const ignoreSessionAttributes = ['2D', 'CC', 'DVS', 'EnglishDub', 'EnglishSub']
-const templateId = 'd-008e503c9f4546ebaa6e9fd78aa683f4'
+const ignoreSessionAttributes = ["2D", "CC", "DVS", "EnglishDub", "EnglishSub"]
+const templateId = "d-008e503c9f4546ebaa6e9fd78aa683f4"
 const megaplexApi = axios.create({
-  baseURL: 'https://apiv2.megaplextheatres.com/api/',
+  baseURL: "https://apiv2.megaplextheatres.com/api/",
+  // Disable SSL verification. Megaplex certs have caused issues in the
+  // past for some reason (looks like browsers do a better job of
+  // handling missing intermediate certs than Node does). Since we're
+  // only retrieving information and not sending anything, we don't
+  // care.
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false,
+  }),
 })
 
 /**
@@ -53,7 +62,7 @@ const loadSecrets = async () => {
   // load secrets from SSM
   const { Parameters } = await new AWS.SSM()
     .getParameters({
-      Names: ['SENDGRID_API_KEY'].map((secretName) => process.env[secretName]),
+      Names: ["SENDGRID_API_KEY"].map((secretName) => process.env[secretName]),
       WithDecryption: true,
     })
     .promise()
@@ -88,7 +97,7 @@ const toTimestamp = (dateString) => new Date(`${dateString}Z`).getTime() / 1000
  */
 const isLuxuryTuesdayShowtime = (showtime) =>
   showtime.allowTicketSales &&
-  showtime.sessionAttributesNames.includes('Luxury') &&
+  showtime.sessionAttributesNames.includes("Luxury") &&
   new Date(`${showtime.showtime}Z`).getDay() === 2
 
 /**
@@ -111,9 +120,9 @@ const getFilms = async (theatreId) => {
     const data = await dynamodb
       .query({
         TableName: process.env.STORAGE_SHOWTIMES_NAME,
-        KeyConditionExpression: 'cinemaId = :cinemaId',
+        KeyConditionExpression: "cinemaId = :cinemaId",
         ExpressionAttributeValues: {
-          ':cinemaId': theatreId,
+          ":cinemaId": theatreId,
         },
         ExclusiveStartKey: lastEvaluatedKey,
       })
@@ -138,12 +147,12 @@ const getFilms = async (theatreId) => {
           ...session,
           prettyShowtime: dateFormat(
             new Date(`${session.showtime}Z`),
-            'mmm. d – h:MM tt'
+            "mmm. d – h:MM tt"
           ),
           sessionAttributesNames: session.sessionAttributesNames
             .filter((attr) => !ignoreSessionAttributes.includes(attr))
             .map((attr) => attr.toUpperCase())
-            .join(' '),
+            .join(" "),
         })),
     }))
     .filter((film) => film.sessions.length > 0)
@@ -199,9 +208,9 @@ const getTheatreSubscriptions = async (theatreId) => {
     const data = await dynamodb
       .scan({
         TableName: process.env.API_MEGAPLEX_THEATRESUBSCRIPTIONTABLE_NAME,
-        FilterExpression: 'theatre = :theatre',
+        FilterExpression: "theatre = :theatre",
         ExpressionAttributeValues: {
-          ':theatre': theatreId,
+          ":theatre": theatreId,
         },
         ExclusiveStartKey: lastEvaluatedKey,
       })
@@ -226,17 +235,17 @@ const getUserEmail = async (username) => {
       Username: username,
     })
     .promise()
-  const email = data.UserAttributes.find((attr) => attr.Name === 'email').Value
+  const email = data.UserAttributes.find((attr) => attr.Name === "email").Value
   const emailVerified = data.UserAttributes.find(
-    (attr) => attr.Name === 'email_verified'
+    (attr) => attr.Name === "email_verified"
   ).Value
 
   if (!email) {
-    throw Error('missing email')
+    throw Error("missing email")
   }
 
-  if (emailVerified !== 'true') {
-    throw Error('unverified email')
+  if (emailVerified !== "true") {
+    throw Error("unverified email")
   }
 
   return email
@@ -253,14 +262,14 @@ const processTheatre = async (theatre) => {
   try {
     films = await getFilms(theatre.id)
   } catch (err) {
-    console.error('error retrieving showtimes for theatre:', theatre.id)
+    console.error("error retrieving showtimes for theatre:", theatre.id)
     console.error(err)
     return
   }
 
   // Only process further if we have new showtimes
   if (films.length <= 0) {
-    console.log('No new showtimes for theatre:', theatre.id)
+    console.log("No new showtimes for theatre:", theatre.id)
     return
   }
 
@@ -269,13 +278,13 @@ const processTheatre = async (theatre) => {
   try {
     subscriptions = await getTheatreSubscriptions(theatre.id)
   } catch (err) {
-    console.error('error loading subscriptions for theatre:', theatre.id)
+    console.error("error loading subscriptions for theatre:", theatre.id)
     console.error(err)
     return
   }
 
   if (subscriptions.length <= 0) {
-    console.log('No subscriptions for theatre:', theatre.id)
+    console.log("No subscriptions for theatre:", theatre.id)
     return
   }
 
@@ -287,7 +296,7 @@ const processTheatre = async (theatre) => {
         try {
           email = await getUserEmail(owner)
         } catch (err) {
-          console.error('error retreiving email for user:', owner)
+          console.error("error retreiving email for user:", owner)
           console.error(err)
         }
         return email
@@ -299,10 +308,10 @@ const processTheatre = async (theatre) => {
   try {
     await sendgrid.sendMultiple({
       to: emails,
-      from: 'megaplex-updates@jordanthomasg.com',
+      from: "megaplex-updates@jordanthomasg.com",
       templateId,
       dynamicTemplateData: {
-        unsubscribe: 'https://megaplex.jordanthomasg.com',
+        unsubscribe: "https://megaplex.jordanthomasg.com",
         theatre,
         films,
       },
@@ -312,7 +321,7 @@ const processTheatre = async (theatre) => {
       theatre.id
     )
   } catch (err) {
-    console.error('error sending notifications for theatre:', theatre.id)
+    console.error("error sending notifications for theatre:", theatre.id)
     console.error(err)
   }
 }
@@ -326,7 +335,7 @@ exports.handler = async (event) => {
   // load secrets
   await loadSecrets()
   // load theatres
-  const { data: theatres } = await megaplexApi.get('cinema/cinemas')
+  const { data: theatres } = await megaplexApi.get("cinema/cinemas")
   // process theatre showtimes asynchronously
   await Promise.all(theatres.map(processTheatre))
 }
